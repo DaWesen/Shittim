@@ -1,0 +1,23 @@
+# 忽略配置文件
+config/config.yaml
+
+# 忽略Go编译产物
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# 忽略Go模块缓存
+go.work
+
+# 忽略编辑器文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 忽略系统文件
+.DS_Store
+Thumbs.db
