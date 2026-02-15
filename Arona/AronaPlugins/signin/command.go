@@ -1,6 +1,7 @@
 package signin
 
 import (
+	"Shittim/Arona/cmd"
 	"Shittim/pkg/database"
 	"Shittim/pkg/models"
 	"fmt"
@@ -9,16 +10,35 @@ import (
 	"github.com/wdvxdr1123/ZeroBot/message"
 )
 
-func init() {
-	//签到命令
-	zero.OnRegex(`^签到$`).SetBlock(true).Handle(func(ctx *zero.Ctx) {
+// 签到模块
+type SigninModule struct{}
+
+// 返回模块名称
+func (m *SigninModule) Name() string {
+	return "signin"
+}
+
+// 进入模块时执行的操作
+func (m *SigninModule) Enter(ctx *zero.Ctx) {
+	ctx.Send("已进入签到系统\n可用命令：\n- signin: 执行签到\n- exp: 查询经验\n- exit: 退出签到系统")
+}
+
+// 退出模块时执行的操作
+func (m *SigninModule) Exit(ctx *zero.Ctx) {
+	ctx.Send("已退出签到系统")
+}
+
+// 处理模块内的命令
+func (m *SigninModule) HandleCommand(cmd string, args []string, ctx *zero.Ctx) bool {
+	switch cmd {
+	case "signin", "签到":
 		qq := ctx.Event.UserID
 		nickname := ctx.Event.Sender.NickName
 
 		reward, streak, err := DoSignin(qq, nickname)
 		if err != nil {
 			ctx.Send(message.Text("签到失败：", err.Error()))
-			return
+			return true
 		}
 
 		ctx.Send(message.Text(
@@ -27,10 +47,8 @@ func init() {
 			fmt.Sprintf("连续签到：%d 天\n", streak),
 			"努力成为什亭之箱的守护者吧！",
 		))
-	})
-
-	//查询经验命令
-	zero.OnRegex(`^经验$`).SetBlock(true).Handle(func(ctx *zero.Ctx) {
+		return true
+	case "exp", "经验":
 		qq := ctx.Event.UserID
 
 		//查询用户信息
@@ -39,7 +57,7 @@ func init() {
 
 		if result.Error != nil {
 			ctx.Send(message.Text("查询失败：用户不存在，请先签到注册！"))
-			return
+			return true
 		}
 
 		ctx.Send(message.Text(
@@ -48,5 +66,15 @@ func init() {
 			fmt.Sprintf("当前经验：%d\n", user.Exp),
 			"继续签到获取更多经验值吧！",
 		))
-	})
+		return true
+	default:
+		return false
+	}
+}
+
+// 注册签到模块
+func RegisterModule(cmdSystem interface {
+	RegisterModule(module cmd.Module)
+}) {
+	cmdSystem.RegisterModule(&SigninModule{})
 }
