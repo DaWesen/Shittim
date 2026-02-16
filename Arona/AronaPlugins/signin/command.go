@@ -18,9 +18,9 @@ func (m *SigninModule) Name() string {
 	return "signin"
 }
 
-// 进入模块时执行的操作
+// Enter 进入模块时执行的操作
 func (m *SigninModule) Enter(ctx *zero.Ctx) {
-	ctx.Send("已进入签到系统\n可用命令：\n- signin: 执行签到\n- exp: 查询经验\n- exit: 退出签到系统")
+	ctx.Send("已进入签到系统\n可用命令：\n- signin: 执行签到\n- exp: 查询经验\n- rank: 查看经验排行榜\n- 排名: 查看我的排名\n- exit: 退出签到系统")
 }
 
 // 退出模块时执行的操作
@@ -65,6 +65,41 @@ func (m *SigninModule) HandleCommand(cmd string, args []string, ctx *zero.Ctx) b
 			fmt.Sprintf("当前等级：%d\n", user.Level),
 			fmt.Sprintf("当前经验：%d\n", user.Exp),
 			"继续签到获取更多经验值吧！",
+		))
+		return true
+	case "rank", "排行", "排行榜":
+		//获取经验排行榜
+		users, err := GetExpRank(10)
+		if err != nil {
+			ctx.Send(message.Text("获取排行榜失败：", err.Error()))
+			return true
+		}
+
+		//构建排行榜消息
+		rankMsg := "🏆 经验排行榜\n"
+		for i, user := range users {
+			rankMsg += fmt.Sprintf("%d. %s - %d 经验值\n", i+1, user.Nickname, user.Exp)
+		}
+
+		ctx.Send(message.Text(rankMsg))
+		return true
+	case "我的排名", "排名":
+		//获取用户排名
+		rank, err := GetUserRank(ctx.Event.UserID)
+		if err != nil {
+			ctx.Send(message.Text("获取排名失败：用户不存在，请先签到注册！"))
+			return true
+		}
+
+		//查询用户信息
+		var user models.User
+		database.GetDB().Where("qq = ?", ctx.Event.UserID).First(&user)
+
+		ctx.Send(message.Text(
+			"📈 我的排名\n",
+			fmt.Sprintf("当前排名：第 %d 名\n", rank),
+			fmt.Sprintf("当前经验：%d\n", user.Exp),
+			"继续签到提升排名吧！",
 		))
 		return true
 	default:
