@@ -13,5 +13,5 @@ type Signin struct {
 	Date      string    `gorm:"size:10;index;comment:签到日期（YYYY-MM-DD）"`
 	Reward    int       `gorm:"default:0;comment:签到奖励"`
 	Streak    int       `gorm:"default:1;comment:连续签到天数"`
-	CreatedAt time.Time `comment:签到时间`
+	CreatedAt time.Time `gorm:"comment:签到时间"`
 }

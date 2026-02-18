@@ -11,6 +11,6 @@ type User struct {
 	Nickname  string    `gorm:"size:50;comment:用户昵称"`
 	Level     int       `gorm:"default:1;comment:用户等级"`
 	Exp       int       `gorm:"default:0;comment:用户经验"`
-	CreatedAt time.Time `comment:创建时间`
-	UpdatedAt time.Time `comment:更新时间`
+	CreatedAt time.Time `gorm:"comment:创建时间"`
+	UpdatedAt time.Time `gorm:"comment:更新时间"`
 }

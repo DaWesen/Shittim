@@ -3,6 +3,7 @@ package main
 import (
 	"Shittim/Arona/AronaPlugins/balogo"
 	"Shittim/Arona/AronaPlugins/signin"
+	"Shittim/Arona/AronaPlugins/studentArchive"
 	"Shittim/Arona/cmd"
 	"Shittim/config"
 	"Shittim/pkg/database"
@@ -29,6 +30,9 @@ func main() {
 
 	// 注册蔚蓝档案Logo生成模块
 	balogo.RegisterModule(cmdSystem)
+
+	// 注册学生档案模块
+	studentArchive.RegisterModule(cmdSystem)
 
 	// 注册消息处理器
 	zero.OnMessage().Handle(func(ctx *zero.Ctx) {
