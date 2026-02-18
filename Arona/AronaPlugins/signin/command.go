@@ -35,7 +35,7 @@ func (m *SigninModule) HandleCommand(cmd string, args []string, ctx *zero.Ctx) b
 		qq := ctx.Event.UserID
 		nickname := ctx.Event.Sender.NickName
 
-		reward, streak, err := DoSignin(qq, nickname)
+		reward, streak, event, err := DoSignin(qq, nickname)
 		if err != nil {
 			ctx.Send(message.Text("签到失败：", err.Error()))
 			return true
@@ -45,6 +45,8 @@ func (m *SigninModule) HandleCommand(cmd string, args []string, ctx *zero.Ctx) b
 			"🎉 签到成功！\n",
 			fmt.Sprintf("获得奖励：%d 经验值\n", reward),
 			fmt.Sprintf("连续签到：%d 天\n", streak),
+			"\n🌟 今日日常事件：\n",
+			fmt.Sprintf("【%s】%s\n", event.Type, event.Description),
 			"努力成为什亭之箱的守护者吧！",
 		))
 		return true
