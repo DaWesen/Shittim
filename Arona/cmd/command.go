@@ -118,9 +118,6 @@ func (cs *CommandSystem) ProcessInput(input string, ctx *zero.Ctx) {
 		}
 		return
 	}
-
-	//未进入任何模块，且不是以/开头的命令，直接返回，不做任何处理
-	return
 }
 
 // 显示帮助信息

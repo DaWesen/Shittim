@@ -3,78 +3,84 @@ package config
 import (
 	"fmt"
 	"log"
-	"os"
+	"path/filepath"
 
-	"gopkg.in/yaml.v3"
+	"github.com/spf13/viper"
 )
 
 type Config struct {
-	Database DatabaseConfig `yaml:"database"`
-	Arona    AronaConfig    `yaml:"arona"`
-	Momotalk MomotalkConfig `yaml:"momotalk"`
+	Database DatabaseConfig `mapstructure:"database"`
+	Arona    AronaConfig    `mapstructure:"arona"`
+	Momotalk MomotalkConfig `mapstructure:"momotalk"`
 }
 
 type DatabaseConfig struct {
-	Postgres PostgresConfig `yaml:"postgres"`
+	Postgres PostgresConfig `mapstructure:"postgres"`
 }
 
 type PostgresConfig struct {
-	Host     string `yaml:"host"`
-	Port     int    `yaml:"port"`
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
-	DBName   string `yaml:"dbname"`
-	SSLMode  string `yaml:"sslmode"`
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	User     string `mapstructure:"user"`
+	Password string `mapstructure:"password"`
+	DBName   string `mapstructure:"dbname"`
+	SSLMode  string `mapstructure:"sslmode"`
 }
 
 type AronaConfig struct {
-	NickName      []string        `yaml:"nickname"`
-	CommandPrefix string          `yaml:"command_prefix"`
-	SuperUsers    []int64         `yaml:"super_users"`
-	WebSocket     WebSocketConfig `yaml:"websocket"`
+	NickName      []string        `mapstructure:"nickname"`
+	CommandPrefix string          `mapstructure:"command_prefix"`
+	SuperUsers    []int64         `mapstructure:"super_users"`
+	WebSocket     WebSocketConfig `mapstructure:"websocket"`
 }
 
 type WebSocketConfig struct {
-	Port int    `yaml:"port"`
-	URL  string `yaml:"url"`
+	Port int    `mapstructure:"port"`
+	URL  string `mapstructure:"url"`
 }
 
 type MomotalkConfig struct {
-	AI AIConfig `yaml:"ai"`
+	AI AIConfig `mapstructure:"ai"`
 }
 
 type AIConfig struct {
-	APIKey string `yaml:"api_key"`
-	Model  string `yaml:"model"`
+	APIKey string `mapstructure:"api_key"`
+	Model  string `mapstructure:"model"`
 }
 
 var AppConfig Config
 
 func LoadConfig() error {
-	//尝试从多个可能的路径加载配置文件
+	// 创建viper实例
+	v := viper.New()
+
+	// 配置文件名称
+	v.SetConfigName("config")
+	v.SetConfigType("yaml")
+
+	// 尝试从多个可能的路径加载配置文件
 	possiblePaths := []string{
-		"config/config.yaml",       // 从项目根目录运行
-		"../config/config.yaml",    // 从Arona目录运行
-		"../../config/config.yaml", // 从Arona/Arona目录运行
+		"./config",             // 从项目根目录运行
+		"../config",            // 从Arona目录运行
+		"../../config",         // 从Arona/Arona目录运行
+		filepath.Dir("./"),     // 当前目录
+		filepath.Dir("../"),    // 上级目录
+		filepath.Dir("../../"), // 上上级目录
 	}
 
-	var file []byte
-	var err error
-
-	//尝试所有可能的路径
+	// 添加所有可能的配置路径
 	for _, path := range possiblePaths {
-		file, err = os.ReadFile(path)
-		if err == nil {
-			//找到配置文件
-			break
-		}
+		v.AddConfigPath(path)
 	}
 
+	// 读取配置文件
+	err := v.ReadInConfig()
 	if err != nil {
 		return fmt.Errorf("读取配置文件失败: %v", err)
 	}
 
-	err = yaml.Unmarshal(file, &AppConfig)
+	// 解析配置到结构体
+	err = v.Unmarshal(&AppConfig)
 	if err != nil {
 		return fmt.Errorf("解析配置文件失败: %v", err)
 	}

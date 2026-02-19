@@ -7,6 +7,12 @@ import (
 	"Shittim/pkg/models"
 )
 
+// 关注状态常量
+const (
+	Default   = "默认"
+	Attention = "重点关注"
+)
+
 // 创建新学生
 func CreateStudent(name, level string, age uint, clubName, schoolName, height, love, affection string) (*models.Student, error) {
 	// 检查学校是否存在
@@ -31,6 +37,7 @@ func CreateStudent(name, level string, age uint, clubName, schoolName, height, l
 		Height:     height,
 		Love:       love,
 		Affection:  affection,
+		UnderEye:   Default,
 	}
 
 	// 保存到数据库

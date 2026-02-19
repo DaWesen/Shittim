@@ -14,6 +14,16 @@ func AutoMigrate() {
 	err := db.AutoMigrate(
 		&models.User{},
 		&models.Signin{},
+		&models.School{},
+		&models.Club{},
+		&models.Student{},
+		&models.StoryBase{},
+		&models.StoryStudent{},
+		&models.DailyStory{},
+		&models.EventStory{},
+		&models.ExclusiveMemory{},
+		&models.Conversation{},
+		&models.Message{},
 	)
 
 	if err != nil {
