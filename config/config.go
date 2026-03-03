@@ -12,6 +12,7 @@ type Config struct {
 	Database DatabaseConfig `mapstructure:"database"`
 	Arona    AronaConfig    `mapstructure:"arona"`
 	Momotalk MomotalkConfig `mapstructure:"momotalk"`
+	AI       AIConfig       `mapstructure:"ai"`
 }
 
 type DatabaseConfig struct {
@@ -40,12 +41,22 @@ type WebSocketConfig struct {
 }
 
 type MomotalkConfig struct {
-	AI AIConfig `mapstructure:"ai"`
+	AI MomotalkAIConfig `mapstructure:"ai"`
+}
+
+type MomotalkAIConfig struct {
+	APIKey string `mapstructure:"api_key"`
+	Model  string `mapstructure:"model"`
 }
 
 type AIConfig struct {
+	Eino EinoConfig `mapstructure:"eino"`
+}
+
+type EinoConfig struct {
 	APIKey string `mapstructure:"api_key"`
 	Model  string `mapstructure:"model"`
+	BaseURL string `mapstructure:"base_url"`
 }
 
 var AppConfig Config

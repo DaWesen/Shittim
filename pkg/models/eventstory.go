@@ -1,6 +1,6 @@
 package models
 
-// EventStory 活动故事模型，存储多个学生和用户长时间交互的故事
+// 活动故事模型，存储多个学生和用户长时间交互的故事
 type EventStory struct {
 	StoryBase
 	EventName      string `gorm:"size:100;comment:活动名称"`

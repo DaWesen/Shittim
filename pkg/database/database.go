@@ -16,7 +16,9 @@ func InitDatabase() {
 	fmt.Printf("正在连接数据库: %s\n", dsn)
 
 	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true, // 禁用外键约束
+	})
 	if err != nil {
 		log.Fatalf("连接数据库失败: %v", err)
 	}

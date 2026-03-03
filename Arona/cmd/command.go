@@ -49,7 +49,7 @@ func (cs *CommandSystem) RegisterDirectCommand(cmd string, handler func(ctx *zer
 }
 
 // 处理用户输入
-func (cs *CommandSystem) ProcessInput(input string, ctx *zero.Ctx) {
+func (cs *CommandSystem) ProcessInput(input string, ctx *zero.Ctx) bool {
 	//检查是否是命令（以/开头）
 	if strings.HasPrefix(input, "/") {
 		cmd := strings.TrimPrefix(input, "/")
@@ -57,7 +57,7 @@ func (cs *CommandSystem) ProcessInput(input string, ctx *zero.Ctx) {
 		//检查是否是直接执行的命令
 		if handler, exists := cs.directCommands[cmd]; exists {
 			handler(ctx)
-			return
+			return true
 		}
 
 		//检查是否是退出命令
@@ -69,13 +69,13 @@ func (cs *CommandSystem) ProcessInput(input string, ctx *zero.Ctx) {
 			} else {
 				ctx.Send("当前不在任何功能系统中")
 			}
-			return
+			return true
 		}
 
 		//检查是否是帮助命令
 		if cmd == "help" {
 			cs.showHelp(ctx)
-			return
+			return true
 		}
 
 		//检查是否是有效的模块名称
@@ -88,13 +88,13 @@ func (cs *CommandSystem) ProcessInput(input string, ctx *zero.Ctx) {
 			//进入新模块
 			cs.currentModule = cmd
 			module.Enter(ctx)
-			return
+			return true
 		} else {
 			//不是系统命令，让plugin处理
 			//移除/前缀，让plugin处理
 			ctx.Event.RawMessage = cmd
 			//让ZeroBot继续处理这个消息
-			return
+			return false
 		}
 	}
 
@@ -116,8 +116,11 @@ func (cs *CommandSystem) ProcessInput(input string, ctx *zero.Ctx) {
 		} else {
 			ctx.Send("请输入命令，或输入 /exit 退出当前功能系统")
 		}
-		return
+		return true
 	}
+
+	// 未处理的输入
+	return false
 }
 
 // 显示帮助信息

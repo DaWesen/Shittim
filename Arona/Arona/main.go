@@ -2,6 +2,7 @@ package main
 
 import (
 	"Shittim/Arona/AronaPlugins/balogo"
+	"Shittim/Arona/AronaPlugins/momotalk"
 	"Shittim/Arona/AronaPlugins/signin"
 	"Shittim/Arona/AronaPlugins/studentArchive"
 	"Shittim/Arona/cmd"
@@ -22,6 +23,11 @@ func main() {
 	// 自动迁移数据库模型
 	database.AutoMigrate()
 
+	// 初始化 Momotalk AI
+	if err := momotalk.Init(); err != nil {
+		panic(err)
+	}
+
 	// 创建命令系统实例
 	cmdSystem := cmd.NewCommandSystem()
 
@@ -33,6 +39,9 @@ func main() {
 
 	// 注册学生档案模块
 	studentArchive.RegisterModule(cmdSystem)
+
+	// 注册 Momotalk 模块
+	momotalk.RegisterModule(cmdSystem)
 
 	// 注册消息处理器
 	zero.OnMessage().Handle(func(ctx *zero.Ctx) {

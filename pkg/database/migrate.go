@@ -11,12 +11,33 @@ func AutoMigrate() {
 	log.Println("正在自动迁移数据库模型...")
 
 	db := GetDB()
-	err := db.AutoMigrate(
-		&models.User{},
-		&models.Signin{},
-		&models.School{},
-		&models.Club{},
-		&models.Student{},
+	// 按照依赖顺序创建表
+	err := db.AutoMigrate(&models.User{})
+	if err != nil {
+		log.Fatalf("数据库迁移失败: %v", err)
+	}
+
+	err = db.AutoMigrate(&models.Signin{})
+	if err != nil {
+		log.Fatalf("数据库迁移失败: %v", err)
+	}
+
+	err = db.AutoMigrate(&models.School{})
+	if err != nil {
+		log.Fatalf("数据库迁移失败: %v", err)
+	}
+
+	err = db.AutoMigrate(&models.Club{})
+	if err != nil {
+		log.Fatalf("数据库迁移失败: %v", err)
+	}
+
+	err = db.AutoMigrate(&models.Student{})
+	if err != nil {
+		log.Fatalf("数据库迁移失败: %v", err)
+	}
+
+	err = db.AutoMigrate(
 		&models.StoryBase{},
 		&models.StoryStudent{},
 		&models.DailyStory{},
