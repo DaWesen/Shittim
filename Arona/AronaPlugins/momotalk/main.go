@@ -50,7 +50,7 @@ func Init() error {
 		Model:       chatModel,
 		ToolsConfig: adk.ToolsConfig{
 			ToolsNodeConfig: compose.ToolsNodeConfig{
-				Tools: []tool.BaseTool{}, // 可以添加工具
+				Tools: []tool.BaseTool{},
 			},
 		},
 	})
@@ -98,14 +98,4 @@ func Chat(ctx context.Context, message string, onChunk func(string) error) error
 	}
 
 	return nil
-}
-
-// ChatSync 处理 AI 对话（同步，用于兼容旧代码）
-func ChatSync(ctx context.Context, message string) (string, error) {
-	var response string
-	err := Chat(ctx, message, func(chunk string) error {
-		response += chunk
-		return nil
-	})
-	return response, err
 }

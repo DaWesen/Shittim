@@ -2,9 +2,9 @@ package student
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -31,6 +31,7 @@ type StudentInfo struct {
 	Greeting       string   `json:"greeting"`
 	ExampleDialogs []string `json:"example_dialogs"`
 	Temperature    float64  `json:"temperature"`
+	Prompt         string   `json:"prompt"` // 学生的提示词
 }
 
 // Manager 学生管理器
@@ -70,7 +71,7 @@ func (m *Manager) loadStudentsFromYAML() error {
 		}
 
 		// 读取目录中的所有YAML文件
-		files, err := ioutil.ReadDir(basePath)
+		files, err := os.ReadDir(basePath)
 		if err != nil {
 			continue
 		}
@@ -79,7 +80,7 @@ func (m *Manager) loadStudentsFromYAML() error {
 			if !file.IsDir() && filepath.Ext(file.Name()) == ".yaml" {
 				// 读取YAML文件
 				filePath := filepath.Join(basePath, file.Name())
-				data, err := ioutil.ReadFile(filePath)
+				data, err := os.ReadFile(filePath)
 				if err != nil {
 					continue
 				}
@@ -94,6 +95,9 @@ func (m *Manager) loadStudentsFromYAML() error {
 				studentInfo.Greeting = fmt.Sprintf("你好，我是%s，来自%s的%s成员。", studentInfo.Name, studentInfo.School, studentInfo.Organization)
 				studentInfo.ExampleDialogs = studentInfo.Catchphrases
 				studentInfo.Temperature = 0.7
+
+				// 加载对应的提示词文件
+				studentInfo.Prompt = m.loadStudentPrompt(studentInfo.Name)
 
 				// 添加到学生列表
 				m.students[studentInfo.Name] = &studentInfo
@@ -143,4 +147,45 @@ func (m *Manager) GetStudentDetails(name string) (map[string]interface{}, error)
 	}
 
 	return details, nil
+}
+
+// loadStudentPrompt 加载学生的提示词文件
+func (m *Manager) loadStudentPrompt(studentName string) string {
+	// 构建提示词文件的路径
+	promptPaths := []string{
+		"./prompts",
+	}
+
+	// 学生名称到提示词文件名的映射
+	nameToFilename := map[string]string{
+		"圣园未花": "misono_mika.go",
+	}
+
+	// 尝试不同的路径
+	for _, basePath := range promptPaths {
+		// 优先使用映射的文件名
+		fileName, ok := nameToFilename[studentName]
+		if !ok {
+			// 如果没有映射，使用默认的转换方式
+			fileName = strings.ToLower(strings.ReplaceAll(studentName, " ", "_")) + ".go"
+		}
+		filePath := filepath.Join(basePath, fileName)
+
+		// 检查文件是否存在并读取
+		if data, err := os.ReadFile(filePath); err == nil {
+			// 提取提示词内容
+			content := string(data)
+			// 查找提示词变量定义
+			if start := strings.Index(content, "Prompt = `"); start != -1 {
+				start += len("Prompt = `")
+				if end := strings.LastIndex(content, "`"); end > start {
+					return content[start:end]
+				}
+			}
+		}
+	}
+
+	// 如果没有找到提示词文件，返回默认提示词
+	return fmt.Sprintf("# Role: %s\n\n## 核心设定\n你是%s，来自%s的%s成员。\n\n## 性格\n%s\n\n## 说话风格\n%s\n",
+		studentName, studentName, studentName, studentName, studentName, studentName)
 }
