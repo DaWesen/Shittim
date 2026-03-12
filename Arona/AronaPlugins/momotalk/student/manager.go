@@ -154,11 +154,15 @@ func (m *Manager) loadStudentPrompt(studentName string) string {
 	// 构建提示词文件的路径
 	promptPaths := []string{
 		"./prompts",
+		"./student/prompts",
+		"../student/prompts",
+		"../../student/prompts",
+		"../../../student/prompts",
 	}
 
 	// 学生名称到提示词文件名的映射
 	nameToFilename := map[string]string{
-		"圣园未花": "misono_mika.go",
+		"圣园未花": "misonomika.go",
 	}
 
 	// 尝试不同的路径
@@ -176,8 +180,8 @@ func (m *Manager) loadStudentPrompt(studentName string) string {
 			// 提取提示词内容
 			content := string(data)
 			// 查找提示词变量定义
-			if start := strings.Index(content, "Prompt = `"); start != -1 {
-				start += len("Prompt = `")
+			if start := strings.Index(content, "MisonoMikaPrompt = `"); start != -1 {
+				start += len("MisonoMikaPrompt = `")
 				if end := strings.LastIndex(content, "`"); end > start {
 					return content[start:end]
 				}

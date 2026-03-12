@@ -23,3 +23,7 @@ go.work
 # 忽略系统文件
 .DS_Store
 Thumbs.db
+
+# 忽略学生信息和提示词文件
+student/
+Arona/AronaPlugins/momotalk/student/prompts/

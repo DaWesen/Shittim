@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 
+	"Shittim/Arona/AronaPlugins/momotalk/dao"
 	"Shittim/config"
+	"Shittim/pkg/database"
 
 	"github.com/cloudwego/eino-ext/components/model/openai"
 	"github.com/cloudwego/eino/adk"
@@ -22,6 +24,10 @@ var (
 // Init 初始化 Momotalk AI
 func Init() error {
 	fmt.Println("Initializing Momotalk AI with Eino...")
+
+	// 初始化数据库
+	database.InitDatabase()
+	database.AutoMigrate()
 
 	// 从配置中获取 Eino 配置
 	einoConfig := config.AppConfig.AI.Eino
@@ -66,7 +72,7 @@ func Init() error {
 }
 
 // Chat 处理 AI 对话（流式）
-func Chat(ctx context.Context, message string, onChunk func(string) error) error {
+func Chat(ctx context.Context, userID int64, message string, onChunk func(string) error) error {
 	// 检查是否初始化
 	if runner == nil {
 		return fmt.Errorf("Momotalk AI not initialized")
@@ -74,6 +80,9 @@ func Chat(ctx context.Context, message string, onChunk func(string) error) error
 
 	// 发送消息并获取响应
 	iter := runner.Query(ctx, message)
+
+	// 收集完整的响应
+	var fullResponse string
 
 	// 流式处理响应
 	for {
@@ -89,12 +98,19 @@ func Chat(ctx context.Context, message string, onChunk func(string) error) error
 				// 获取消息内容
 				content := msg.Content
 				if content != "" {
+					fullResponse += content
 					if err := onChunk(content); err != nil {
 						return err
 					}
 				}
 			}
 		}
+	}
+
+	// 保存对话到数据库
+	conversationDAO := dao.NewConversationDAO()
+	if err := conversationDAO.SaveConversation(userID, message, fullResponse); err != nil {
+		log.Printf("Failed to save conversation: %v", err)
 	}
 
 	return nil

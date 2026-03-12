@@ -4,11 +4,10 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
+	"Shittim/Arona/AronaPlugins/momotalk/dao"
 	"Shittim/Arona/AronaPlugins/momotalk/student"
 	"Shittim/Arona/cmd"
-	"Shittim/pkg/database"
 	"Shittim/pkg/models"
 
 	zero "github.com/wdvxdr1123/ZeroBot"
@@ -237,7 +236,8 @@ func (m *MomotalkModule) HandleCommand(cmd string, args []string, ctx *zero.Ctx)
 			// 流式接收并输出消息
 			var fullResponse string
 			var lastResponse string
-			err := Chat(context.Background(), prompt, func(chunk string) error {
+			userID := int64(ctx.Event.UserID)
+			err := Chat(context.Background(), userID, prompt, func(chunk string) error {
 				fullResponse += chunk
 				// 只有当内容发生变化时才发送消息
 				if fullResponse != lastResponse {
@@ -320,60 +320,23 @@ func (m *MomotalkModule) buildPrompt(messageText string) string {
 
 // 加载独家记忆
 func (m *MomotalkModule) loadExclusiveMemories(studentName string) []models.ExclusiveMemory {
-	var memories []models.ExclusiveMemory
-	db := database.GetDB()
-	result := db.Where("student_name = ?", studentName).Find(&memories)
-	if result.Error != nil {
-		fmt.Printf("加载独家记忆失败: %v\n", result.Error)
-		return []models.ExclusiveMemory{}
-	}
-	return memories
+	memoryDAO := dao.NewMemoryDAO()
+	return memoryDAO.LoadExclusiveMemories(studentName)
 }
 
 // 保存独家记忆
 func (m *MomotalkModule) saveExclusiveMemory(studentName, content, emotionTag string) error {
-	memory := models.ExclusiveMemory{
-		StoryBase: models.StoryBase{
-			Title:     fmt.Sprintf("与%s的记忆", studentName),
-			Content:   content,
-			StoryType: "exclusive_memory",
-		},
-		StudentName:   studentName,
-		IntimacyLevel: 1,
-		MemoryType:    "chat_memory",
-		SpecialDate:   time.Now().Format("2006-01-02"),
-		EmotionTag:    emotionTag,
-		LastRecallAt:  time.Now(),
-	}
-
-	db := database.GetDB()
-	result := db.Create(&memory)
-	return result.Error
+	memoryDAO := dao.NewMemoryDAO()
+	return memoryDAO.SaveExclusiveMemory(studentName, content, emotionTag)
 }
 
 // 获取数据库信息
 func (m *MomotalkModule) getDatabaseInfo(query string) string {
-	// 获取数据库连接
-	db := database.GetDB()
+	// 使用 StudentDAO 查询学生信息
+	studentDAO := dao.NewStudentDAO()
+	students := studentDAO.GetStudentsByQuery(query)
 
-	// 构建查询
-	dbQuery := db.Model(&models.Student{})
-
-	// 根据查询内容添加条件
-	if strings.Contains(query, "三一") {
-		dbQuery = dbQuery.Where("school_name LIKE ?", "%三一%")
-	} else if strings.Contains(query, "格黑娜") {
-		dbQuery = dbQuery.Where("school_name LIKE ?", "%格黑娜%")
-	} else if strings.Contains(query, "阿拜多斯") {
-		dbQuery = dbQuery.Where("school_name LIKE ?", "%阿拜多斯%")
-	} else if strings.Contains(query, "茶会") {
-		dbQuery = dbQuery.Where("club_name LIKE ?", "%茶会%")
-	}
-
-	// 执行查询
-	var students []models.Student
-	result := dbQuery.Find(&students)
-	if result.Error != nil || len(students) == 0 {
+	if len(students) == 0 {
 		return "未找到相关学生信息"
 	}
 
