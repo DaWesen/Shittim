@@ -7,7 +7,6 @@ import (
 
 	"Shittim/Arona/AronaPlugins/momotalk/dao"
 	"Shittim/config"
-	"Shittim/pkg/database"
 	"Shittim/pkg/vector"
 
 	"github.com/cloudwego/eino-ext/components/model/openai"
@@ -25,10 +24,6 @@ var (
 // Init 初始化 Momotalk AI
 func Init() error {
 	fmt.Println("Initializing Momotalk AI with Eino...")
-
-	// 初始化数据库
-	database.InitDatabase()
-	database.AutoMigrate()
 
 	// 初始化向量模型
 	if err := vector.Init(); err != nil {
@@ -132,7 +127,7 @@ func Chat(ctx context.Context, userID int64, message string, studentName string,
 				if msg.IsUser {
 					contextInfo += "用户: " + msg.Content + "\n"
 				} else {
-					contextInfo += "未花: " + msg.Content + "\n"
+					contextInfo += studentName + ": " + msg.Content + "\n"
 				}
 			}
 			contextInfo += "\n"
