@@ -3,6 +3,7 @@ package dao
 import (
 	"Shittim/pkg/database"
 	"Shittim/pkg/models"
+	"Shittim/pkg/vector"
 	"time"
 )
 
@@ -16,6 +17,12 @@ func NewMemoryDAO() *MemoryDAO {
 
 // SaveExclusiveMemory 保存独家记忆
 func (dao *MemoryDAO) SaveExclusiveMemory(studentName, content, emotionTag string) error {
+	// 生成记忆内容的向量嵌入
+	_, err := vector.GenerateEmbedding(content)
+	if err != nil {
+		// 向量生成失败不影响记忆保存
+	}
+
 	memory := models.ExclusiveMemory{
 		StoryBase: models.StoryBase{
 			Title:     studentName + "的独家记忆",
@@ -42,6 +49,12 @@ func (dao *MemoryDAO) LoadExclusiveMemories(studentName string) []models.Exclusi
 
 // SaveDailyStory 保存日常故事
 func (dao *MemoryDAO) SaveDailyStory(students []string, content string) error {
+	// 生成故事内容的向量嵌入
+	contentVector, err := vector.GenerateEmbedding(content)
+	if err != nil {
+		// 向量生成失败不影响故事保存
+	}
+
 	story := models.DailyStory{
 		StoryBase: models.StoryBase{
 			Title:     "日常故事",
@@ -50,15 +63,23 @@ func (dao *MemoryDAO) SaveDailyStory(students []string, content string) error {
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 		},
-		Theme:   "日常",
-		Setting: "校园",
-		Mood:    "轻松",
+		Theme:         "日常",
+		Setting:       "校园",
+		Mood:          "轻松",
+		LastReadAt:    time.Now(),
+		ContentVector: contentVector,
 	}
 	return database.GetDB().Create(&story).Error
 }
 
 // SaveEventStory 保存活动故事
 func (dao *MemoryDAO) SaveEventStory(students []string, content string) error {
+	// 生成故事内容的向量嵌入
+	contentVector, err := vector.GenerateEmbedding(content)
+	if err != nil {
+		// 向量生成失败不影响故事保存
+	}
+
 	story := models.EventStory{
 		StoryBase: models.StoryBase{
 			Title:     "活动故事",
@@ -67,11 +88,14 @@ func (dao *MemoryDAO) SaveEventStory(students []string, content string) error {
 			CreatedAt: time.Now(),
 			UpdatedAt: time.Now(),
 		},
-		EventName:    "活动",
-		StudentCount: len(students),
-		Duration:     "一天",
-		EventType:    "校园活动",
-		Location:     "学校",
+		EventName:      "活动",
+		StudentCount:   len(students),
+		Duration:       "一天",
+		EventType:      "校园活动",
+		Location:       "学校",
+		ChapterCount:   1,
+		CurrentChapter: 1,
+		ContentVector:  contentVector,
 	}
 	return database.GetDB().Create(&story).Error
 }

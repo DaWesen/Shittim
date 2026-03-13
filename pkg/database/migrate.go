@@ -11,6 +11,12 @@ func AutoMigrate() {
 	log.Println("正在自动迁移数据库模型...")
 
 	db := GetDB()
+
+	// 创建向量扩展
+	if err := db.Exec("CREATE EXTENSION IF NOT EXISTS vector").Error; err != nil {
+		log.Printf("创建向量扩展失败: %v", err)
+	}
+
 	// 按照依赖顺序创建表
 	err := db.AutoMigrate(&models.User{})
 	if err != nil {
@@ -39,7 +45,6 @@ func AutoMigrate() {
 
 	err = db.AutoMigrate(
 		&models.StoryBase{},
-		&models.StoryStudent{},
 		&models.DailyStory{},
 		&models.EventStory{},
 		&models.ExclusiveMemory{},

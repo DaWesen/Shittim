@@ -1,6 +1,7 @@
 package student
 
 import (
+	"Shittim/config"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -61,6 +62,7 @@ func (m *Manager) loadStudentsFromYAML() error {
 		"../student",
 		"../../student",
 		"../../../student",
+		"../../../../student",
 	}
 
 	// 遍历所有可能的路径
@@ -117,7 +119,7 @@ func (m *Manager) loadStudentsFromYAML() error {
 func (m *Manager) GetStudent(name string) (*StudentInfo, error) {
 	student, ok := m.students[name]
 	if !ok {
-		return nil, fmt.Errorf("student %s not found", name)
+		return nil, fmt.Errorf("学生 %s 不存在，请检查输入的名称是否正确", name)
 	}
 	return student, nil
 }
@@ -160,9 +162,10 @@ func (m *Manager) loadStudentPrompt(studentName string) string {
 		"../../../student/prompts",
 	}
 
-	// 学生名称到提示词文件名的映射
-	nameToFilename := map[string]string{
-		"圣园未花": "misonomika.go",
+	// 从配置中获取学生名称到提示词文件名的映射
+	nameToFilename := config.AppConfig.Momotalk.Mapping.NameToFilename
+	if nameToFilename == nil {
+		nameToFilename = make(map[string]string)
 	}
 
 	// 尝试不同的路径

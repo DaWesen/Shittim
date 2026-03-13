@@ -41,7 +41,9 @@ type WebSocketConfig struct {
 }
 
 type MomotalkConfig struct {
-	AI MomotalkAIConfig `mapstructure:"ai"`
+	AI      MomotalkAIConfig       `mapstructure:"ai"`
+	Default DefaultCharacterConfig `mapstructure:"default"`
+	Mapping StudentMappingConfig   `mapstructure:"mapping"`
 }
 
 type MomotalkAIConfig struct {
@@ -49,13 +51,22 @@ type MomotalkAIConfig struct {
 	Model  string `mapstructure:"model"`
 }
 
+type DefaultCharacterConfig struct {
+	Name        string `mapstructure:"name"`
+	Description string `mapstructure:"description"`
+}
+
+type StudentMappingConfig struct {
+	NameToFilename map[string]string `mapstructure:"name_to_filename"`
+}
+
 type AIConfig struct {
 	Eino EinoConfig `mapstructure:"eino"`
 }
 
 type EinoConfig struct {
-	APIKey string `mapstructure:"api_key"`
-	Model  string `mapstructure:"model"`
+	APIKey  string `mapstructure:"api_key"`
+	Model   string `mapstructure:"model"`
 	BaseURL string `mapstructure:"base_url"`
 }
 

@@ -8,6 +8,7 @@ import (
 	"Shittim/Arona/AronaPlugins/momotalk/dao"
 	"Shittim/Arona/AronaPlugins/momotalk/student"
 	"Shittim/Arona/cmd"
+	"Shittim/config"
 	"Shittim/pkg/models"
 
 	zero "github.com/wdvxdr1123/ZeroBot"
@@ -52,6 +53,13 @@ func (m *MomotalkModule) Enter(ctx *zero.Ctx) {
 	if len(studentNames) == 0 {
 		ctx.Send("没有可用的学生角色")
 		return
+	}
+
+	// 更新所有学生的向量嵌入
+	studentDAO := dao.NewStudentDAO()
+	if err := studentDAO.UpdateAllStudentEmbeddings(); err != nil {
+		fmt.Printf("更新学生向量嵌入失败: %v\n", err)
+		// 继续执行，不影响系统启动
 	}
 
 	// 构建角色列表消息
@@ -118,7 +126,7 @@ func (m *MomotalkModule) HandleCommand(cmd string, args []string, ctx *zero.Ctx)
 	// 处理选择角色命令
 	if cmd == "select" || cmd == "选择" {
 		if len(args) == 0 {
-			ctx.Send("请输入要选择的学生姓名，例如：select 圣园未花")
+			ctx.Send(fmt.Sprintf("请输入要选择的学生姓名，例如：select %s", config.AppConfig.Momotalk.Default.Name))
 			return true
 		}
 
@@ -213,7 +221,7 @@ func (m *MomotalkModule) HandleCommand(cmd string, args []string, ctx *zero.Ctx)
 
 		// 检查是否已经选择了角色
 		if len(m.currentStudent) == 0 {
-			ctx.Send("请先选择角色，例如：select 圣园未花")
+			ctx.Send(fmt.Sprintf("请先选择角色，例如：select %s", config.AppConfig.Momotalk.Default.Name))
 			return true
 		}
 
@@ -237,7 +245,12 @@ func (m *MomotalkModule) HandleCommand(cmd string, args []string, ctx *zero.Ctx)
 			var fullResponse string
 			var lastResponse string
 			userID := int64(ctx.Event.UserID)
-			err := Chat(context.Background(), userID, prompt, func(chunk string) error {
+			// 获取当前选择的学生名称
+			studentName := ""
+			if len(m.currentStudent) > 0 {
+				studentName = m.currentStudent[0]
+			}
+			err := Chat(context.Background(), userID, prompt, studentName, func(chunk string) error {
 				fullResponse += chunk
 				// 只有当内容发生变化时才发送消息
 				if fullResponse != lastResponse {
@@ -253,13 +266,34 @@ func (m *MomotalkModule) HandleCommand(cmd string, args []string, ctx *zero.Ctx)
 				return
 			}
 
-			// 如果是独家记忆模式，保存聊天内容为记忆
-			if m.currentMode == ExclusiveMemoryMode && len(m.currentStudent) == 1 {
-				memoryContent := fmt.Sprintf("用户: %s\n%s: %s", messageText, m.currentStudent[0], fullResponse)
-				emotionTag := "聊天记忆"
-				err := m.saveExclusiveMemory(m.currentStudent[0], memoryContent, emotionTag)
+			// 根据不同模式保存不同类型的故事
+			switch m.currentMode {
+			case ExclusiveMemoryMode:
+				if len(m.currentStudent) == 1 {
+					memoryContent := fmt.Sprintf("用户: %s\n%s: %s", messageText, m.currentStudent[0], fullResponse)
+					emotionTag := "聊天记忆"
+					err := m.saveExclusiveMemory(m.currentStudent[0], memoryContent, emotionTag)
+					if err != nil {
+						fmt.Printf("保存独家记忆失败: %v\n", err)
+					}
+				}
+			case DailyChatMode:
+				// 保存日常故事
+				dailyContent := fmt.Sprintf("用户: %s\n", messageText)
+				for _, studentName := range m.currentStudent {
+					dailyContent += fmt.Sprintf("%s: %s\n", studentName, fullResponse)
+				}
+				err := m.saveDailyStory(m.currentStudent, dailyContent)
 				if err != nil {
-					fmt.Printf("保存独家记忆失败: %v\n", err)
+					fmt.Printf("保存日常故事失败: %v\n", err)
+				}
+			case EventChatMode:
+				// 保存活动故事
+				eventContent := fmt.Sprintf("活动参与学生: %v\n用户: %s\n", m.currentStudent, messageText)
+				eventContent += fmt.Sprintf("学生回应: %s\n", fullResponse)
+				err := m.saveEventStory(m.currentStudent, eventContent)
+				if err != nil {
+					fmt.Printf("保存活动故事失败: %v\n", err)
 				}
 			}
 		}()
@@ -328,6 +362,18 @@ func (m *MomotalkModule) loadExclusiveMemories(studentName string) []models.Excl
 func (m *MomotalkModule) saveExclusiveMemory(studentName, content, emotionTag string) error {
 	memoryDAO := dao.NewMemoryDAO()
 	return memoryDAO.SaveExclusiveMemory(studentName, content, emotionTag)
+}
+
+// 保存日常故事
+func (m *MomotalkModule) saveDailyStory(students []string, content string) error {
+	memoryDAO := dao.NewMemoryDAO()
+	return memoryDAO.SaveDailyStory(students, content)
+}
+
+// 保存活动故事
+func (m *MomotalkModule) saveEventStory(students []string, content string) error {
+	memoryDAO := dao.NewMemoryDAO()
+	return memoryDAO.SaveEventStory(students, content)
 }
 
 // 获取数据库信息
