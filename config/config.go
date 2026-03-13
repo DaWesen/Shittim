@@ -65,9 +65,10 @@ type AIConfig struct {
 }
 
 type EinoConfig struct {
-	APIKey  string `mapstructure:"api_key"`
-	Model   string `mapstructure:"model"`
-	BaseURL string `mapstructure:"base_url"`
+	APIKey          string `mapstructure:"api_key"`
+	Model           string `mapstructure:"model"`
+	BaseURL         string `mapstructure:"base_url"`
+	EmbeddingModel  string `mapstructure:"embedding_model"`
 }
 
 var AppConfig Config

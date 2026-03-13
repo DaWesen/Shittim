@@ -31,9 +31,10 @@ func Init() error {
 
 	// 创建嵌入模型
 	var err error
+	embeddingModel := einoConfig.EmbeddingModel
 	embedder, err = openai.NewEmbedder(context.Background(), &openai.EmbeddingConfig{
 		APIKey:  einoConfig.APIKey,
-		Model:   "text-embedding-ada-002",
+		Model:   embeddingModel,
 		BaseURL: einoConfig.BaseURL,
 	})
 	if err != nil {
