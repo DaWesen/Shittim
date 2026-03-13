@@ -107,7 +107,6 @@ func (m *Manager) loadStudentsFromYAML() error {
 		}
 	}
 
-	// 确保至少加载了圣园未花
 	if len(m.students) == 0 {
 		return fmt.Errorf("没有加载到任何学生信息，请确保student目录下有YAML文件")
 	}
