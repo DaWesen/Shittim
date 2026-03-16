@@ -12,5 +12,5 @@ type EventStory struct {
 	Location       string         `gorm:"size:100;comment:活动地点"`
 	ChapterCount   int            `gorm:"default:1;comment:章节数量"`
 	CurrentChapter int            `gorm:"default:1;comment:当前章节"`
-	ContentVector  pgvector.Vector `gorm:"type:vector(1536);comment:故事内容向量"`
+	ContentVector  pgvector.Vector `gorm:"type:vector(1536, 32);comment:故事内容向量"`
 }

@@ -20,5 +20,5 @@ type Student struct {
 	CreatedAt  time.Time       `gorm:"comment:创建时间"`
 	UpdatedAt  time.Time       `gorm:"comment:更新时间"`
 	Stories    []StoryBase     `gorm:"many2many:story_students;"` // 与故事的多对多关联
-	Embedding  pgvector.Vector `gorm:"type:vector(1536);comment:学生信息向量"`
+	Embedding  pgvector.Vector `gorm:"type:vector(1536, 32);comment:学生信息向量"`
 }

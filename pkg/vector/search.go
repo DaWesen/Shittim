@@ -22,6 +22,9 @@ func NewSearchService() *SearchService {
 
 // SearchSimilarConversations 搜索相似的对话
 func (s *SearchService) SearchSimilarConversations(userID int64, queryVector pgvector.Vector, limit int) ([]models.Conversation, error) {
+	// 设置 IVFFlat 搜索参数，提高搜索精度
+	s.db.Exec("SET ivfflat.probes = 10;")
+
 	var conversations []models.Conversation
 	result := s.db.Model(&models.Conversation{}).
 		Where("user_id = ?", userID).
@@ -34,6 +37,9 @@ func (s *SearchService) SearchSimilarConversations(userID int64, queryVector pgv
 
 // SearchSimilarMessages 搜索相似的消息
 func (s *SearchService) SearchSimilarMessages(conversationID uint, queryVector pgvector.Vector, limit int) ([]models.Message, error) {
+	// 设置 IVFFlat 搜索参数，提高搜索精度
+	s.db.Exec("SET ivfflat.probes = 10;")
+
 	var messages []models.Message
 	result := s.db.Model(&models.Message{}).
 		Where("conversation_id = ?", conversationID).
@@ -46,6 +52,9 @@ func (s *SearchService) SearchSimilarMessages(conversationID uint, queryVector p
 
 // SearchSimilarMemories 搜索相似的记忆
 func (s *SearchService) SearchSimilarMemories(studentName string, queryVector pgvector.Vector, limit int) ([]models.ExclusiveMemory, error) {
+	// 设置 IVFFlat 搜索参数，提高搜索精度
+	s.db.Exec("SET ivfflat.probes = 10;")
+
 	var memories []models.ExclusiveMemory
 	result := s.db.Model(&models.ExclusiveMemory{}).
 		Where("student_name = ?", studentName).
@@ -58,6 +67,9 @@ func (s *SearchService) SearchSimilarMemories(studentName string, queryVector pg
 
 // SearchSimilarStudents 搜索相似的学生
 func (s *SearchService) SearchSimilarStudents(queryVector pgvector.Vector, limit int) ([]models.Student, error) {
+	// 设置 IVFFlat 搜索参数，提高搜索精度
+	s.db.Exec("SET ivfflat.probes = 10;")
+
 	var students []models.Student
 	result := s.db.Model(&models.Student{}).
 		Select("*, 1 - (embedding <=> ?) as similarity", queryVector).
@@ -69,6 +81,9 @@ func (s *SearchService) SearchSimilarStudents(queryVector pgvector.Vector, limit
 
 // SearchSimilarDailyStories 搜索相似的日常故事
 func (s *SearchService) SearchSimilarDailyStories(queryVector pgvector.Vector, limit int) ([]models.DailyStory, error) {
+	// 设置 IVFFlat 搜索参数，提高搜索精度
+	s.db.Exec("SET ivfflat.probes = 10;")
+
 	var stories []models.DailyStory
 	result := s.db.Model(&models.DailyStory{}).
 		Select("*, 1 - (content_vector <=> ?) as similarity", queryVector).
@@ -80,6 +95,9 @@ func (s *SearchService) SearchSimilarDailyStories(queryVector pgvector.Vector, l
 
 // SearchSimilarEventStories 搜索相似的活动故事
 func (s *SearchService) SearchSimilarEventStories(queryVector pgvector.Vector, limit int) ([]models.EventStory, error) {
+	// 设置 IVFFlat 搜索参数，提高搜索精度
+	s.db.Exec("SET ivfflat.probes = 10;")
+
 	var stories []models.EventStory
 	result := s.db.Model(&models.EventStory{}).
 		Select("*, 1 - (content_vector <=> ?) as similarity", queryVector).

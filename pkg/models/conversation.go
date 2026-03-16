@@ -16,7 +16,7 @@ type Conversation struct {
 	LastActive  time.Time       `gorm:"autoUpdateTime;comment:最后活跃时间"`
 	Topic       string          `gorm:"size:100;comment:对话主题"`
 	Status      string          `gorm:"size:20;default:active;comment:对话状态"` // active, ended
-	TopicVector pgvector.Vector `gorm:"type:vector(1536);comment:对话主题向量"`
+	TopicVector pgvector.Vector `gorm:"type:vector(1536, 32);comment:对话主题向量"`
 }
 
 // 消息模型，存储单条对话消息
@@ -28,5 +28,5 @@ type Message struct {
 	Timestamp      time.Time       `gorm:"autoCreateTime;comment:消息时间戳"`
 	MessageType    string          `gorm:"size:20;default:text;comment:消息类型"` // text, image, voice
 	Emotion        string          `gorm:"size:20;comment:情绪标签"`
-	ContentVector  pgvector.Vector `gorm:"type:vector(1536);comment:消息内容向量"`
+	ContentVector  pgvector.Vector `gorm:"type:vector(1536, 32);comment:消息内容向量"`
 }
